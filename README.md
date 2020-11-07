@@ -6,8 +6,8 @@ you can using this script to install to you vps and manager all website in vps
 
 Just run it in you vps
 
-```shell
-curl -sO http://script.tranvanphi.info/install && bash install
+```curl
+curl -sO https://script.tranvanphi.info/install && bash install
 ```
 
 ### Script using

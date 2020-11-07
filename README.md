@@ -1,10 +1,8 @@
-## Welcome to GitHub Pages
+## Welcome to VPS Script
 
-You can use the [editor on GitHub](https://github.com/tranvanphy/vpsscript/edit/main/README.md) to maintain and preview the content for your website in Markdown files.
+you can using this script to install to you vps and manager all website in vps
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
-
-### Markdown
+### Install
 
 Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
 

@@ -42,12 +42,6 @@ printf "Begin... \n"
 printf "=========================================================================\n"
 printf "php version 7.4\n"
 php_version="7.4"; # Default PHP 7.4
-printf "\nEnter your main domain (non-www or www) [ENTER]: " 
-read server_name
-if [ "$server_name" = "" ]; then
-	server_name="default"
-	echo "You not select domain, domain.com will be set to main doamin"
-fi
 printf "\nSelect port admin [ENTER]: (2000 - 9999)(not include 2222): " 
 read admin_port
 if [ "$admin_port" == "" ] || [ $admin_port == "2222" ] || [ $admin_port -lt 2000 ] || [ $admin_port -gt 9999 ] || [ $(lsof -i -P | grep ":$admin_port " | wc -l) != "0" ]; then
@@ -113,14 +107,12 @@ systemctl enable mariadb.service
 systemctl enable fail2ban.service
 systemctl enable iptables.service
 systemctl enable ip6tables.service
-mkdir -p /home/$server_name/public_html
-mkdir /home/$server_name/private_html
-mkdir /home/$server_name/logs
-chmod 777 /home/$server_name/logs
+mkdir -p /home/default/html
+mkdir /home/default/logs
+chmod 777 /home/default/logs
 mkdir -p /var/log/nginx
 chown -R nginx:nginx /var/log/nginx
 chown -R nginx:nginx /var/lib/php/session
-wget -q $script_url/html/index.html -O /home/$server_name/public_html/index.html
 systemctl start nginx.service
 systemctl start php-fpm.service
 systemctl start mariadb.service
@@ -141,8 +133,6 @@ else
 	wget -q $script_url/config/php-fpm/www.conf -O /etc/php-fpm.d/www.conf
 fi 
 
-sed -i "s/server_name_here/$server_name/g" /etc/php-fpm.conf
-sed -i "s/server_name_here/$server_name/g" /etc/php-fpm.d/www.conf
 sed -i "s/max_children_here/$max_children/g" /etc/php-fpm.d/www.conf
 
 # dynamic PHP memory_limit calculation
@@ -209,7 +199,7 @@ END
 # Zend Opcache
 opcache_path='opcache.so' #Default for PHP 5.5 and newer
 
-wget -q https://raw.github.com/amnuts/opcache-gui/master/index.php -O /home/$server_name/private_html/op.php
+wget -q https://raw.github.com/amnuts/opcache-gui/master/index.php -O /home/default/html/op.php
 cat > /etc/php.d/*opcache*.ini <<END
 zend_extension=$opcache_path
 opcache.enable=1
@@ -223,13 +213,6 @@ opcache.validate_timestamps=1
 opcache.revalidate_freq=60
 opcache.fast_shutdown=1
 opcache.blacklist_filename=/etc/php.d/opcache-default.blacklist
-END
-
-cat > /etc/php.d/opcache-default.blacklist <<END
-/home/*/public_html/wp-content/plugins/backwpup/*
-/home/*/public_html/wp-content/plugins/duplicator/*
-/home/*/public_html/wp-content/plugins/updraftplus/*
-/home/$server_name/private_html/
 END
 
 systemctl restart php-fpm.service
@@ -335,123 +318,23 @@ cat > "/usr/share/nginx/html/404.html" <<END
 END
 
 rm -rf /etc/nginx/conf.d/*
-> /etc/nginx/conf.d/default.conf
-
-server_name_alias="www.$server_name"
-if [[ $server_name == *www* ]]; then
-    server_name_alias=${server_name/www./''}
-fi
-
-cat > "/etc/nginx/conf.d/$server_name.conf" <<END
+cat > "/etc/nginx/conf.d/default.conf" <<END
 server {
-	listen 80;
-	
-	server_name $server_name_alias;
-	rewrite ^(.*) http://$server_name\$1 permanent;
+    listen   80 default_server;
+    return   444;
 }
-
-server {
-	listen 80 default_server;
-		
-	# access_log off;
-	access_log /home/$server_name/logs/access.log;
-	# error_log off;
-	error_log /home/$server_name/logs/error.log;
-	
-	root /home/$server_name/public_html;
-	index index.php index.html index.htm;
-	server_name $server_name;
- 
-	location / {
-		try_files \$uri \$uri/ /index.php?\$args;
-	}
-	
-	# Custom configuration
-	include /home/$server_name/public_html/*.conf;
- 
-	location ~ \.php$ {
-	fastcgi_split_path_info ^(.+\.php)(/.+)$;
-	include /etc/nginx/fastcgi_params;
-	fastcgi_pass 127.0.0.1:9000;
-	fastcgi_index index.php;
-	fastcgi_connect_timeout 1000;
-	fastcgi_send_timeout 1000;
-	fastcgi_read_timeout 1000;
-	fastcgi_buffer_size 256k;
-	fastcgi_buffers 4 256k;
-	fastcgi_busy_buffers_size 256k;
-	fastcgi_temp_file_write_size 256k;
-	fastcgi_intercept_errors on;
-		fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-	}
-	
-	location /nginx_status {
-  		stub_status on;
-  		access_log   off;
-		allow 127.0.0.1;
-		allow $server_ip;
-		deny all;
-	}
-	
-	location /php_status {
-		fastcgi_pass 127.0.0.1:9000;
-		fastcgi_index index.php;
-		fastcgi_param SCRIPT_FILENAME  \$document_root\$fastcgi_script_name;
-		include /etc/nginx/fastcgi_params;
-		allow 127.0.0.1;
-		allow $server_ip;
-		deny all;
-    	}
-	
-	# Disable .htaccess and other hidden files
-	location ~ /\.(?!well-known).* {
-		deny all;
-		access_log off;
-		log_not_found off;
-	}
-	
-	location = /favicon.ico {
-		log_not_found off;
-		access_log off;
-	}
-	
-	location = /robots.txt {
-		allow all;
-		log_not_found off;
-		access_log off;
-	}
-	
-	location ~* \.(3gp|gif|jpg|jpeg|png|ico|wmv|avi|asf|asx|mpg|mpeg|mp4|pls|mp3|mid|wav|swf|flv|exe|zip|tar|rar|gz|tgz|bz2|uha|7z|doc|docx|xls|xlsx|pdf|iso|eot|svg|ttf|woff)$ {
-		gzip_static off;
-		add_header Pragma public;
-		add_header Cache-Control "public, must-revalidate, proxy-revalidate";
-		access_log off;
-		expires 30d;
-		break;
-        }
-
-	location ~* \.(txt|js|css)$ {
-		add_header Pragma public;
-	add_header Cache-Control "public, must-revalidate, proxy-revalidate";
-	access_log off;
-	expires 30d;
-	break;
-	}
-}
-
 server {
 	listen $admin_port;
 	
  	access_log off;
 	log_not_found off;
- 	error_log /home/$server_name/logs/nginx_error.log;
+ 	error_log /home/default/logs/nginx_error.log;
 	
-	root /home/$server_name/private_html;
+	root /home/default/html;
 	index index.php index.html index.htm;
-	server_name $server_name;
 	
 	auth_basic "Restricted";
-	auth_basic_user_file /home/$server_name/private_html/phitv/.htpasswd;
+	auth_basic_user_file /home/default/html/phitv/.htpasswd;
  
 	location / {
 	autoindex on;
@@ -459,18 +342,18 @@ server {
 	}
 	
 	location ~ \.php$ {
-	fastcgi_split_path_info ^(.+\.php)(/.+)$;
-	include /etc/nginx/fastcgi_params;
-	fastcgi_pass 127.0.0.1:9000;
-	fastcgi_index index.php;
-	fastcgi_connect_timeout 1000;
-	fastcgi_send_timeout 1000;
-	fastcgi_read_timeout 1000;
-	fastcgi_buffer_size 256k;
-	fastcgi_buffers 4 256k;
-	fastcgi_busy_buffers_size 256k;
-	fastcgi_temp_file_write_size 256k;
-	fastcgi_intercept_errors on;
+		fastcgi_split_path_info ^(.+\.php)(/.+)$;
+		include /etc/nginx/fastcgi_params;
+		fastcgi_pass 127.0.0.1:9000;
+		fastcgi_index index.php;
+		fastcgi_connect_timeout 1000;
+		fastcgi_send_timeout 1000;
+		fastcgi_read_timeout 1000;
+		fastcgi_buffer_size 256k;
+		fastcgi_buffers 4 256k;
+		fastcgi_busy_buffers_size 256k;
+		fastcgi_temp_file_write_size 256k;
+		fastcgi_intercept_errors on;
 		fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
 	}
 	
@@ -522,8 +405,6 @@ if [[ "$(expr $server_ram_total \>= 32000000)" = "1" ]]; then
 	wget -q $script_url/config/mysql/my-mdb10-32gb.cnf -O /etc/my.cnf
 fi
 
-sed -i "s/server_name_here/$server_name/g" /etc/my.cnf
-
 rm -f /var/lib/mysql/ib_logfile0
 rm -f /var/lib/mysql/ib_logfile1
 rm -f /var/lib/mysql/ibdata1
@@ -544,7 +425,6 @@ sleep 1
 # Random password for MySQL admin account
 admin_password=`date |md5sum |cut -c '14-30'`
 '/usr/bin/mysqladmin' -u root password "$root_password"
-mysql -u root -p"$root_password" -e "GRANT ALL PRIVILEGES ON *.* TO 'admin'@'localhost' IDENTIFIED BY '$admin_password' WITH GRANT OPTION;"
 mysql -u root -p"$root_password" -e "DELETE FROM mysql.user WHERE User=''"
 mysql -u root -p"$root_password" -e "DROP User '';"
 mysql -u root -p"$root_password" -e "DROP DATABASE test"
@@ -584,36 +464,36 @@ printf "Config for MariaDB Finish... \n"
 printf "=========================================================================\n"
 
 # Script Admin
-cd /home/$server_name/private_html/
+cd /home/default/html/
 wget -q $script_url/package/administrator.zip
 unzip -q administrator.zip && rm -f administrator.zip
 mv -f administrator/* .
 rm -rf administrator
-printf "admin:$(openssl passwd -apr1 $admin_password)\n" > /home/$server_name/private_html/phitv/.htpasswd
-sed -i "s/rootpassword/$root_password/g" /home/$server_name/private_html/phitv/SQLManager.php
+printf "admin:$(openssl passwd -apr1 $admin_password)\n" > /home/default/html/phitv/.htpasswd
+sed -i "s/rootpassword/$root_password/g" /home/default/html/phitv/SQLManager.php
 
 
 # Server Info
-mkdir /home/$server_name/private_html/serverinfo/
-cd /home/$server_name/private_html/serverinfo/
+mkdir /home/default/html/serverinfo/
+cd /home/default/html/serverinfo/
 wget -q $script_url/package/serverinfo.zip
 unzip -q serverinfo.zip && rm -f serverinfo.zip
 
 
 # phpMyAdmin
-mkdir /home/$server_name/private_html/phpmyadmin/
-cd /home/$server_name/private_html/phpmyadmin/
+mkdir /home/default/html/phpmyadmin/
+cd /home/default/html/phpmyadmin/
 wget --no-check-certificate -q https://files.phpmyadmin.net/phpMyAdmin/$phpmyadmin_version/phpMyAdmin-$phpmyadmin_version-english.zip
 unzip -q phpMyAdmin-$phpmyadmin_version-english.zip
 mv -f phpMyAdmin-$phpmyadmin_version-english/* .
 rm -rf phpMyAdmin-$phpmyadmin_version-english*
 
 # eXtplorer File Manager
-mkdir /home/$server_name/private_html/eXtplorer/
-cd /home/$server_name/private_html/eXtplorer/
+mkdir /home/default/html/eXtplorer/
+cd /home/default/html/eXtplorer/
 wget --no-check-certificate -q https://extplorer.net/attachments/download/82/eXtplorer_$extplorer_version.zip # Note ID 74
 unzip -q eXtplorer_$extplorer_version.zip && rm -f eXtplorer_$extplorer_version.zip
-cat > "/home/$server_name/private_html/eXtplorer/config/.htusers.php" <<END
+cat > "/home/default/html/eXtplorer/config/.htusers.php" <<END
 <?php
         if( !defined( '_JEXEC' ) && !defined( '_VALID_MOS' ) ) die( 'Restricted access' );
         \$GLOBALS["users"]=array(
@@ -694,7 +574,7 @@ bantime = 3600
 enabled = true
 filter = nginx-http-auth
 action = iptables[name=NoAuthFailures, port=$admin_port, protocol=tcp]
-logpath = /home/$server_name/logs/nginx_error.log
+logpath = /home/default/logs/nginx_error.log
 maxretry = 3
 bantime = 3600
 END
@@ -715,9 +595,8 @@ fi
 
 mkdir -p /var/lib/php/session
 chown -R nginx:nginx /var/lib/php
-chown nginx:nginx /home/$server_name
-chown -R nginx:nginx /home/*/public_html
-chown -R nginx:nginx /home/*/private_html
+chown nginx:nginx /home/default
+chown -R nginx:nginx /home/*/html
 
 rm -f /root/install
 echo -n "cd /home" >> /root/.bashrc
@@ -726,7 +605,7 @@ mkdir -p /etc/phitv/
 
 cat > "/etc/phitv/scripts.conf" <<END
 phitv_version="$phitv_version"
-server_name="$server_name"
+server_name="default"
 server_ip="$server_ip"
 admin_port="$admin_port"
 script_url="$script_url"
@@ -753,13 +632,13 @@ cat > "/root/phitv-script.txt" <<END
 =========================================================================
 Menu Script: phitv
 
-Main Domain: http://$server_name/ hoac http://$server_ip/
+Main Domain: http://$server_ip/
 
-Script Admin:	http://$server_name:$admin_port/ hoac http://$server_ip:$admin_port/
-File Manager:		http://$server_name:$admin_port/eXtplorer/ hoac http://$server_ip:$admin_port/eXtplorer/
-phpMyAdmin:		http://$server_name:$admin_port/phpmyadmin/ hoac http://$server_ip:$admin_port/phpmyadmin/
-Server Info:		http://$server_name:$admin_port/serverinfo/ hoac http://$server_ip:$admin_port/serverinfo/
-PHP OPcache:		http://$server_name:$admin_port/op.php hoac http://$server_ip:$admin_port/op.php
+Script Admin:	http://$server_ip:$admin_port/
+File Manager:		hoac http://$server_ip:$admin_port/eXtplorer/
+phpMyAdmin:		http://$server_ip:$admin_port/phpmyadmin/
+Server Info:		http://$server_ip:$admin_port/serverinfo/
+PHP OPcache:		http://$server_ip:$admin_port/op.php
 
 Account info for all tool
 Username: admin
@@ -769,11 +648,11 @@ END
 chmod 600 /root/phitv-script.txt
 
 printf "=========================================================================\n"
-printf "Script Admin: http://$server_name:$admin_port/ \n hoac http://$server_ip:$admin_port/\n\n"
-printf "File Manager: http://$server_name:$admin_port/eXtplorer/ \n hoac http://$server_ip:$admin_port/eXtplorer/\n\n"
-printf "phpMyAdmin: http://$server_name:$admin_port/phpmyadmin/ \n hoac http://$server_ip:$admin_port/phpmyadmin/\n\n"
-printf "Server Info: http://$server_name:$admin_port/serverinfo/ \n hoac http://$server_ip:$admin_port/serverinfo/\n\n"
-printf "PHP OPcache: http://$server_name:$admin_port/op.php \n hoac http://$server_ip:$admin_port/op.php\n"
+printf "Script Admin: http://$server_ip:$admin_port/\n\n"
+printf "File Manager: http://$server_ip:$admin_port/eXtplorer/\n\n"
+printf "phpMyAdmin: http://$server_ip:$admin_port/phpmyadmin/\n\n"
+printf "Server Info: http://$server_ip:$admin_port/serverinfo/\n\n"
+printf "PHP OPcache: http://$server_ip:$admin_port/op.php\n"
 printf "=========================================================================\n"
 printf "Account info for all tool:\n"
 printf " Username: admin\n"

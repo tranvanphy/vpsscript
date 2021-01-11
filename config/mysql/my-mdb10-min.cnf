@@ -62,8 +62,8 @@ default-storage-engine = InnoDB
 log_warnings=1
 slow_query_log=0
 long_query_time=1
-slow_query_log_file=/home/server_name_here/logs/mysql-slow.log
-log-error=/home/server_name_here/logs/mysql.log
+slow_query_log_file=/home/default/logs/mysql-slow.log
+log-error=/home/default/logs/mysql.log
 
 # innodb settings
 innodb_large_prefix=1

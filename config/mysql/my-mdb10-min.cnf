@@ -10,6 +10,7 @@ ignore-db-dir=lost+found
 character-set-server=utf8
 datadir=/var/lib/mysql
 socket=/var/lib/mysql/mysql.sock
+lower_case_table_names=1
 
 #bind-address=127.0.0.1
 # optimized my.cnf for MariaDB 5.5.x
@@ -127,7 +128,7 @@ log_slow_filter =admin,filesort,filesort_on_disk,full_join,full_scan,query_cache
 
 [mysqld_safe] 
 socket=/var/lib/mysql/mysql.sock
-log-error=/home/server_name_here/logs/mysql.log
+log-error=/home/default/logs/mysql.log
 #nice = -5
 open-files-limit = 8192
 

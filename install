@@ -1,7 +1,6 @@
 #!/bin/bash
 phitv_version="1.0.0"
 phpmyadmin_version="5.0.3"
-extplorer_version="2.1.13"
 script_url="https://script.tranvanphi.info/"
 low_ram='262144' # 256MB
 yum -y install gawk bc wget lsof
@@ -491,8 +490,8 @@ rm -rf phpMyAdmin-$phpmyadmin_version-english*
 # eXtplorer File Manager
 mkdir /home/default/html/eXtplorer/
 cd /home/default/html/eXtplorer/
-wget --no-check-certificate -q https://extplorer.net/attachments/download/82/eXtplorer_$extplorer_version.zip # Note ID 74
-unzip -q eXtplorer_$extplorer_version.zip && rm -f eXtplorer_$extplorer_version.zip
+wget --no-check-certificate -q $script_url/component/eXtplorer.zip # Note ID 74
+unzip -q eXtplorer.zip && rm -f eXtplorer.zip
 cat > "/home/default/html/eXtplorer/config/.htusers.php" <<END
 <?php
         if( !defined( '_JEXEC' ) && !defined( '_VALID_MOS' ) ) die( 'Restricted access' );

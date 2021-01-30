@@ -84,7 +84,7 @@ sleep 3
 yum-config-manager --enable remi
 yum-config-manager --enable nginx-mainline
 yum-config-manager --enable remi-php74
-yum -y install nginx php-fpm php-common php-gd php-mysqlnd php-pdo php-xml php-mbstring php-mcrypt php-curl php-opcache php-cli php-pecl-zip php-pear php-soap php-xmlrpc php-bcmath php-imagick
+yum -y install nginx php-fpm php-common php-gd php-mysqlnd php-pdo php-xml php-mbstring php-mcrypt php-curl php-cli php-pecl-zip php-pear php-soap php-xmlrpc php-bcmath php-imagick
 # Install MariaDB
 yum -y install MariaDB-server MariaDB-client
 # Install Others
@@ -193,25 +193,6 @@ max_input_vars = 2000
 mysqlnd.net_cmd_buffer_size = 16384
 always_populate_raw_post_data=-1
 disable_functions=shell_exec
-END
-
-# Zend Opcache
-opcache_path='opcache.so' #Default for PHP 5.5 and newer
-
-wget -q https://raw.github.com/amnuts/opcache-gui/master/index.php -O /home/default/html/op.php
-cat > /etc/php.d/*opcache*.ini <<END
-zend_extension=$opcache_path
-opcache.enable=1
-opcache.enable_cli=1
-opcache.memory_consumption=128
-opcache.interned_strings_buffer=16
-opcache.max_accelerated_files=4000
-opcache.max_wasted_percentage=5
-opcache.use_cwd=1
-opcache.validate_timestamps=1
-opcache.revalidate_freq=60
-opcache.fast_shutdown=1
-opcache.blacklist_filename=/etc/php.d/opcache-default.blacklist
 END
 
 systemctl restart php-fpm.service
@@ -637,7 +618,6 @@ Script Admin:	http://$server_ip:$admin_port/
 File Manager:		hoac http://$server_ip:$admin_port/eXtplorer/
 phpMyAdmin:		http://$server_ip:$admin_port/phpmyadmin/
 Server Info:		http://$server_ip:$admin_port/serverinfo/
-PHP OPcache:		http://$server_ip:$admin_port/op.php
 
 Account info for all tool
 Username: admin
@@ -651,7 +631,6 @@ printf "Script Admin: http://$server_ip:$admin_port/\n\n"
 printf "File Manager: http://$server_ip:$admin_port/eXtplorer/\n\n"
 printf "phpMyAdmin: http://$server_ip:$admin_port/phpmyadmin/\n\n"
 printf "Server Info: http://$server_ip:$admin_port/serverinfo/\n\n"
-printf "PHP OPcache: http://$server_ip:$admin_port/op.php\n"
 printf "=========================================================================\n"
 printf "Account info for all tool:\n"
 printf " Username: admin\n"

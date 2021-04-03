@@ -57,6 +57,7 @@ if [ -s /etc/selinux/config ]; then
 sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
 sed -i 's/SELINUX=permissive/SELINUX=disabled/g' /etc/selinux/config
 fi
+apt -y install selinux-utils
 setenforce 0
 apt-get -y install software-properties-common
 apt-key adv --fetch-keys 'https://mariadb.org/mariadb_release_signing_key.asc'

@@ -1,10 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 
 . /etc/phitv/scripts.conf
 
 clear
 prompt="Select one:"
-options=("List Domain" "Add Domain" "Delete Domain" "Change Pass VPS" "Change Port Admin" "Chmod Webserver" "Update Nginx, PHP, MariaDB") # End Options
+options=("List Domain" "Add Domain" "Delete Domain" "Change Pass VPS" "Chmod Webserver" "Update Nginx, PHP, MariaDB")
 
 printf "=========================================================================\n"
 printf "                          Script v$phitv_version \n"
@@ -13,15 +13,15 @@ printf "                             Menu\n"
 printf "=========================================================================\n"
 PS3="
 $prompt"
-select opt in "${options[@]}" "Exit"; do 
+select opt in "${options[@]}" "Exit"; do
 
     case "$REPLY" in
-	    1 ) /etc/phitv/menu/liet-ke-domain;;
-	    2 ) /etc/phitv/menu/them-domain;;
-	    3 ) /etc/phitv/menu/xoa-domain;;
-	    4 ) /etc/phitv/menu/doi-pass-vps;;
-	    5 ) /etc/phitv/menu/phan-quyen-webserver;;
-		6 ) /etc/phitv/menu/update-nginx-php-mariadb;;
+	    1) /etc/phitv/menu/liet-ke-domain;;
+	    2) /etc/phitv/menu/them-domain;;
+	    3) /etc/phitv/menu/xoa-domain;;
+	    4) /etc/phitv/menu/doi-pass-vps;;
+	    5) /etc/phitv/menu/phan-quyen-webserver;;
+		6) /etc/phitv/menu/update-nginx-php-mariadb;;
 	    # End Menu
 
 	    $(( ${#options[@]}+1 )) ) printf "\nGoodbye!\n\n"; break;;

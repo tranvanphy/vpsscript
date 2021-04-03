@@ -113,7 +113,6 @@ chown -R www-data:www-data /var/lib/php/sessions
 systemctl start nginx.service
 systemctl start php8.0-fpm.service
 systemctl start mariadb.service
-ufw enable
 # PHP #
 phplowmem='2097152'
 check_phplowmem=$(expr $server_ram_total \< $phplowmem)
@@ -431,8 +430,6 @@ sleep 1
 
 '/usr/bin/mysqladmin' -u root password "$root_password"
 mysql -u root -p"$root_password" -e "DELETE FROM mysql.user WHERE User=''"
-mysql -u root -p"$root_password" -e "DROP User '';"
-mysql -u root -p"$root_password" -e "DROP DATABASE test"
 mysql -u root -p"$root_password" -e "FLUSH PRIVILEGES"
 
 cat > "/root/.my.cnf" <<END
@@ -600,7 +597,8 @@ ufw allow 465
 ufw allow 587
 ufw allow $admin_port
 ufw allow 2222
-
+ufw allow 22
+ufw enable
 chown -R www-data:www-data /var/lib/php
 chown www-data:www-data /home/default
 chown -R www-data:www-data /home/*/html

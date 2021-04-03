@@ -39,8 +39,8 @@ clear
 printf "=========================================================================\n"
 printf "Begin... \n"
 printf "=========================================================================\n"
-printf "php version 8.4\n"
-php_version="8.4"; # Default PHP 7.4
+printf "php version 7.4\n"
+php_version="7.4"; # Default PHP 7.4
 printf "\nSelect port admin [ENTER]: (2000 - 9999)(not include 2222): " 
 read admin_port
 if [ "$admin_port" == "" ] || [ $admin_port == "2222" ] || [ $admin_port -lt 2000 ] || [ $admin_port -gt 9999 ] || [ $(lsof -i -P | grep ":$admin_port " | wc -l) != "0" ]; then
@@ -84,7 +84,7 @@ apt-get -y update
 apt-get -y install software-properties-common
 add-apt-repository -y ppa:ondrej/php
 apt-get -y update
-apt -y install nginx php-cli php8.0-fpm php-json php-common php-mysql php-zip php-gd php-mbstring php-curl php-xml php-pear php-bcmath php-xmlrpc php-imagick php-mcrypt php-soap
+apt -y install nginx php-cli php7.4-fpm php-json php-common php-mysql php-zip php-gd php-mbstring php-curl php-xml php-pear php-bcmath php-xmlrpc php-imagick php-mcrypt php-soap
 # Install MariaDB
 apt -y install mariadb-server
 # Install Others
@@ -101,7 +101,7 @@ sleep 3
 systemctl disable mysql.service 
 rm -f /etc/systemd/system/mysqld.service
 systemctl enable nginx.service
-systemctl enable php8.0-fpm.service
+systemctl enable php7.4-fpm.service
 systemctl enable mariadb.service 
 systemctl enable fail2ban.service
 mkdir -p /home/default/html
@@ -112,7 +112,7 @@ mkdir -p /var/log/nginx
 chown -R www-data:www-data /var/log/nginx
 chown -R www-data:www-data /var/lib/php/sessions
 systemctl start nginx.service
-systemctl start php8.0-fpm.service
+systemctl start php7.4-fpm.service
 systemctl start mariadb.service
 # PHP #
 phplowmem='2097152'
@@ -122,14 +122,14 @@ if [ "$check_phplowmem" == "1" ]; then
 	lessphpmem=y
 fi
 if [[ "$lessphpmem" = [yY] ]]; then  
-	wget -q $script_url/ubuntu-cf/php-fpm/php-fpm-min.conf -O /etc/php/8.0/fpm/php-fpm.conf
-	wget -q $script_url/ubuntu-cf/php-fpm/www-min.conf -O /etc/php/8.0/fpm/pool.d/www.conf
+	wget -q $script_url/ubuntu-cf/php-fpm/php-fpm-min.conf -O /etc/php/7.4/fpm/php-fpm.conf
+	wget -q $script_url/ubuntu-cf/php-fpm/www-min.conf -O /etc/php/7.4/fpm/pool.d/www.conf
 else
-	wget -q $script_url/ubuntu-cf/php-fpm/php-fpm.conf -O /etc/php/8.0/fpm/php-fpm.conf
-	wget -q $script_url/ubuntu-cf/php-fpm/www.conf -O /etc/php/8.0/fpm/pool.d/www.conf
+	wget -q $script_url/ubuntu-cf/php-fpm/php-fpm.conf -O /etc/php/7.4/fpm/php-fpm.conf
+	wget -q $script_url/ubuntu-cf/php-fpm/www.conf -O /etc/php/7.4/fpm/pool.d/www.conf
 fi 
 
-sed -i "s/max_children_here/$max_children/g" /etc/php/8.0/fpm/pool.d/www.conf
+sed -i "s/max_children_here/$max_children/g" /etc/php/7.4/fpm/pool.d/www.conf
 
 # dynamic PHP memory_limit calculation
 if [[ "$server_ram_total" -le '262144' ]]; then
@@ -174,7 +174,7 @@ elif [[ "$server_ram_total" -gt '4194304' ]]; then
 	php_realpathttl='86400'
 fi
 
-cat > "/etc/php/8.0/fpm/conf.d/00-custom.ini" <<END
+cat > "/etc/php/7.4/fpm/conf.d/00-custom.ini" <<END
 date.timezone = Asia/Ho_Chi_Minh
 max_execution_time = 180
 short_open_tag = On
@@ -192,7 +192,7 @@ always_populate_raw_post_data=-1
 disable_functions=shell_exec
 END
 
-systemctl restart php8.0-fpm.service
+systemctl restart php7.4-fpm.service
 
 # Nginx #
 cat > "/etc/nginx/nginx.conf" <<END

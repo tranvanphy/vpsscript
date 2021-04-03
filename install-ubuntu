@@ -610,9 +610,9 @@ ufw allow $admin_port
 ufw allow 2222
 
 mkdir -p /var/lib/php/session
-chown -R nginx:nginx /var/lib/php
-chown nginx:nginx /home/default
-chown -R nginx:nginx /home/*/html
+chown -R www-data:www-data /var/lib/php
+chown www-data:www-data /home/default
+chown -R www-data:www-data /home/*/html
 
 rm -f /root/install
 echo -n "cd /home" >> /root/.bashrc

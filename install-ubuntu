@@ -65,7 +65,7 @@ setenforce 0
 # rpm -Uvh http://nginx.org/packages/centos/7/x86_64/RPMS/nginx-1.18.0-2.el7.ngx.x86_64.rpm
 # Install MariaDB Repo 10.0
 #wget -O /etc/yum.repos.d/MariaDB.repo $script_url/repo/mariadb.repo
-apt-get install software-properties-common
+apt-get -y install software-properties-common
 apt-key adv --fetch-keys 'https://mariadb.org/mariadb_release_signing_key.asc'
 add-apt-repository 'deb [arch=amd64,arm64,ppc64el] http://nyc2.mirrors.digitalocean.com/mariadb/repo/10.4/ubuntu focal main'
 #
@@ -77,8 +77,8 @@ apt-get -y update
 #remove apache2
 systemctl stop apache2
 systemctl disable apache2
-apt remove apache2
-apt autoremove
+apt -y remove apache2
+apt -y autoremove
 clear
 printf "=========================================================================\n"
 printf "Start install your vps... \n"

@@ -12,7 +12,7 @@ curl -sO https://script.tranvanphi.info/install && bash install
 ```
 Ubuntu
 ```curl
-curl -sO https://script.tranvanphi.info/install-ubuntu && bash install
+curl -sO https://script.tranvanphi.info/install-ubuntu && bash install-ubuntu
 ```
 
 ### Script using

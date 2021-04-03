@@ -81,10 +81,7 @@ sleep 3
 # Install Nginx, PHP-FPM and modules
 # Enable Remi Repo
 apt-get -y update
-apt-get -y install software-properties-common
-add-apt-repository -y ppa:ondrej/php
-apt-get -y update
-apt -y install nginx php7.4-cli php7.4-fpm php-json php-common php-mysql php-zip php-gd php-mbstring php-curl php-xml php-pear php-bcmath php-xmlrpc php-imagick php-mcrypt php-soap php7.4-uuid
+apt -y install nginx php7.4 php7.4-cli php7.4-fpm php7.4-json php7.4-common php7.4-mysql php7.4-zip php7.4-gd php7.4-mbstring php7.4-curl php7.4-xml php-pear php7.4-bcmath php7.4-xmlrpc php7.4-imagick php7.4-mcrypt php7.4-soap php7.4-uuid
 # Install MariaDB
 apt -y install mariadb-server
 # Install Others

@@ -84,7 +84,7 @@ apt-get -y update
 apt-get -y install software-properties-common
 add-apt-repository -y ppa:ondrej/php
 apt-get -y update
-apt -y install nginx php7.4 php-cli php7.4-fpm php-json php-common php-mysql php-zip php-gd php-mbstring php-curl php-xml php-pear php-bcmath php-xmlrpc php-imagick php-mcrypt php-soap php7.4-uuid
+apt -y install nginx php7.4-cli php7.4-fpm php-json php-common php-mysql php-zip php-gd php-mbstring php-curl php-xml php-pear php-bcmath php-xmlrpc php-imagick php-mcrypt php-soap php7.4-uuid
 # Install MariaDB
 apt -y install mariadb-server
 # Install Others

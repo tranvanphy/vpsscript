@@ -104,11 +104,12 @@ systemctl enable php8.0-fpm.service
 systemctl enable mariadb.service 
 systemctl enable fail2ban.service
 mkdir -p /home/default/html
+mkdir -p /var/lib/php/wsdlcache
 mkdir /home/default/logs
 chmod 777 /home/default/logs
 mkdir -p /var/log/nginx
 chown -R www-data:www-data /var/log/nginx
-chown -R www-data:www-data /var/lib/php/session
+chown -R www-data:www-data /var/lib/php/sessions
 systemctl start nginx.service
 systemctl start php8.0-fpm.service
 systemctl start mariadb.service
@@ -600,7 +601,6 @@ ufw allow 587
 ufw allow $admin_port
 ufw allow 2222
 
-mkdir -p /var/lib/php/session
 chown -R www-data:www-data /var/lib/php
 chown www-data:www-data /home/default
 chown -R www-data:www-data /home/*/html

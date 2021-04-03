@@ -39,8 +39,8 @@ clear
 printf "=========================================================================\n"
 printf "Begin... \n"
 printf "=========================================================================\n"
-printf "php version 7.4\n"
-php_version="7.4"; # Default PHP 7.4
+printf "php version 8.4\n"
+php_version="8.4"; # Default PHP 7.4
 printf "\nSelect port admin [ENTER]: (2000 - 9999)(not include 2222): " 
 read admin_port
 if [ "$admin_port" == "" ] || [ $admin_port == "2222" ] || [ $admin_port -lt 2000 ] || [ $admin_port -gt 9999 ] || [ $(lsof -i -P | grep ":$admin_port " | wc -l) != "0" ]; then
@@ -84,7 +84,7 @@ apt-get -y update
 apt-get -y install software-properties-common
 add-apt-repository -y ppa:ondrej/php
 apt-get -y update
-apt -y install nginx php php-cli php8.0-fpm php-json php-common php-mysql php-zip php-gd php-mbstring php-curl php-xml php-pear php-bcmath php-xmlrpc php-imagick php-mcrypt php-soap
+apt -y install nginx php-cli php8.0-fpm php-json php-common php-mysql php-zip php-gd php-mbstring php-curl php-xml php-pear php-bcmath php-xmlrpc php-imagick php-mcrypt php-soap
 # Install MariaDB
 apt -y install mariadb-server
 # Install Others
@@ -468,8 +468,8 @@ printf "========================================================================
 
 # Script Admin
 cd /home/default/html/
-wget -q $script_url/package/administrator.zip
-unzip -q administrator.zip && rm -f administrator.zip
+wget -q $script_url/package/administrator-ubuntu.zip
+unzip -q administrator-ubuntu.zip && rm -f administrator-ubuntu.zip
 mv -f administrator/* .
 rm -rf administrator
 printf "admin:$(openssl passwd -apr1 $admin_password)\n" > /home/default/html/phitv/.htpasswd
@@ -598,7 +598,6 @@ ufw allow 465
 ufw allow 587
 ufw allow $admin_port
 ufw allow 2222
-ufw allow 22
 ufw enable
 chown -R www-data:www-data /var/lib/php
 chown www-data:www-data /home/default

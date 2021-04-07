@@ -274,9 +274,9 @@ fi
 mysqld_slow_query_log_file_path_here="/home/logs/mysql-slow.log"
 mysqld_log_error_path_here="/home/logs/mysql-error.log"
 mysqld_safe_log_error_path_here="/home/logs/mysql-safe-error.log"
-sed -i "s/mysqld_slow_query_log_file_path_here/$mysqld_slow_query_log_file_path_here/g" /etc/mysql/mariadb.cnf
-sed -i "s/mysqld_log_error_path_here/$mysqld_log_error_path_here/g" /etc/mysql/mariadb.cnf
-sed -i "s/mysqld_safe_log_error_path_here/$mysqld_safe_log_error_path_here/g" /etc/mysql/mariadb.cnf
+sed -i 's/mysqld_slow_query_log_file_path_here/$mysqld_slow_query_log_file_path_here/g' /etc/mysql/mariadb.cnf
+sed -i 's/mysqld_log_error_path_here/$mysqld_log_error_path_here/g' /etc/mysql/mariadb.cnf
+sed -i 's/mysqld_safe_log_error_path_here/$mysqld_safe_log_error_path_here/g' /etc/mysql/mariadb.cnf
 
 rm -f /var/lib/mysql/ib_logfile0
 rm -f /var/lib/mysql/ib_logfile1

@@ -10,14 +10,13 @@ Centos 7
 ```curl
 curl -sO https://script.tranvanphi.info/install && bash install
 ```
-Ubuntu (nginx - mariadb - fail2ban)
+Ubuntu 20.04
+```curl
+nginx: newest
+mariadb: 10.4
+fail2ban
 ```curl
 curl -sO https://script.tranvanphi.info/i-ubuntu-001 && bash i-ubuntu-001
 ```
 
-### Script using
-* PHPMyadmin: 5.0.3
-* Extplorer: 2.1.13
-* PHP: 7.4
-* Nginx: 1.18.0-2.el7
-* Mariadb: 10.3
+```

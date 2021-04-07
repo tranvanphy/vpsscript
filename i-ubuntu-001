@@ -1,0 +1,438 @@
+#!/bin/bash
+phitv_version="0.0.1"
+script_url="https://script.tranvanphi.info/"
+low_ram='262144' # 256MB
+apt-get -y install gawk bc wget lsof
+printf "=========================================================================\n"
+printf "Check info... \n"
+printf "=========================================================================\n"
+cpu_name=$( awk -F: '/model name/ {name=$2} END {print name}' /proc/cpuinfo )
+cpu_cores=$( awk -F: '/model name/ {core++} END {print core}' /proc/cpuinfo )
+cpu_freq=$( awk -F: ' /cpu MHz/ {freq=$2} END {print freq}' /proc/cpuinfo )
+server_ram_total=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
+server_ram_mb=`echo "scale=0;$server_ram_total/1024" | bc`
+server_hdd=$( df -h | awk 'NR==2 {print $2}' )
+server_swap_total=$(awk '/SwapTotal/ {print $2}' /proc/meminfo)
+server_swap_mb=`echo "scale=0;$server_swap_total/1024" | bc`
+server_ip=$(curl -s https://ident.me/)
+printf "=========================================================================\n"
+printf "VPS info below \n"
+printf "=========================================================================\n"
+echo "CPU: $cpu_name"
+echo "CPU core: $cpu_cores"
+echo "Core Speed: $cpu_freq MHz"
+echo "RAM: $server_ram_mb MB"
+echo "Swap: $server_swap_mb MB"
+echo "Disk: $server_hdd GB"
+echo "IP: $server_ip"
+printf "=========================================================================\n"
+printf "=========================================================================\n"
+if [ $server_ram_total -lt $low_ram ]; then
+	echo -e "Error: RAM is very low to install Script \n (Min 256MB) \n"
+	echo "Cancel..."
+	exit
+fi
+sleep 3
+printf "=========================================================================\n"
+printf "Begin... \n"
+printf "=========================================================================\n"
+
+printf "\nSelect port admin [ENTER]: (2000 - 9999)(not include 2222): " 
+read admin_port
+if [ "$admin_port" == "" ] || [ $admin_port == "2222" ] || [ $admin_port -lt 2000 ] || [ $admin_port -gt 9999 ] || [ $(lsof -i -P | grep ":$admin_port " | wc -l) != "0" ]; then
+	admin_port=$(date +'%Y')
+	echo "Port admin is incorrect. $admin_port have selected"
+	echo
+fi
+printf "=========================================================================\n"
+printf "Finish Begin... \n"
+printf "=========================================================================\n"
+rm -f /etc/localtime
+ln -sf /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime
+if [ -s /etc/selinux/config ]; then
+sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
+sed -i 's/SELINUX=permissive/SELINUX=disabled/g' /etc/selinux/config
+fi
+apt -y install selinux-utils
+setenforce 0
+apt-get -y install software-properties-common
+apt-key adv --fetch-keys 'https://mariadb.org/mariadb_release_signing_key.asc'
+add-apt-repository 'deb [arch=amd64,arm64,ppc64el] http://nyc2.mirrors.digitalocean.com/mariadb/repo/10.4/ubuntu focal main'
+#
+systemctl stop saslauthd.service
+systemctl disable saslauthd.service
+apt-get -y remove mysql* php* httpd* sendmail* postfix* rsyslog*
+apt-get -y update
+#remove apache2
+systemctl stop apache2
+systemctl disable apache2
+apt -y remove apache2
+apt -y autoremove
+printf "=========================================================================\n"
+printf "Start install your vps... \n"
+printf "=========================================================================\n"
+# Install Nginx, 
+apt-get -y update
+apt -y install nginx
+# Install MariaDB
+apt -y install mariadb-server
+# disable ufw
+ufw disable
+# Install Others
+apt -y install syslog-ng syslog-ng-core fail2ban unzip zip nano openssl ntpdate rpm
+ntpdate asia.pool.ntp.org
+hwclock --systohc
+printf "=========================================================================\n"
+printf "Install finish, Start config... \n"
+printf "=========================================================================\n"
+# Autostart
+#disable mysqld service
+systemctl disable mysql.service 
+rm -f /etc/systemd/system/mysqld.service
+systemctl enable nginx.service
+systemctl enable mariadb.service 
+systemctl enable fail2ban.service
+systemctl enable ufw
+mkdir /home/logs
+chmod 777 /home/logs
+mkdir -p /var/log/nginx
+chown -R www-data:www-data /var/log/nginx
+systemctl start nginx.service
+systemctl start mariadb.service
+# Nginx #
+cat > "/etc/nginx/nginx.conf" <<END
+
+user www-data;
+worker_processes auto;
+worker_rlimit_nofile 260000;
+
+error_log  /var/log/nginx/error.log warn;
+pid        /run/nginx.pid;
+
+events {
+	worker_connections  2048;
+	accept_mutex off;
+	accept_mutex_delay 200ms;
+	use epoll;
+}
+
+http {
+	include       /etc/nginx/mime.types;
+	default_type  application/octet-stream;
+
+	set_real_ip_from 173.245.48.0/20;
+    set_real_ip_from 103.21.244.0/22;
+    set_real_ip_from 103.22.200.0/22;
+    set_real_ip_from 103.31.4.0/22;
+    set_real_ip_from 141.101.64.0/18;
+    set_real_ip_from 108.162.192.0/18;
+    set_real_ip_from 190.93.240.0/20;
+    set_real_ip_from 188.114.96.0/20;
+    set_real_ip_from 197.234.240.0/22;
+    set_real_ip_from 198.41.128.0/17;
+    set_real_ip_from 162.158.0.0/15;
+    set_real_ip_from 104.16.0.0/12;
+    set_real_ip_from 172.64.0.0/13;
+    set_real_ip_from 131.0.72.0/22;
+    set_real_ip_from 2400:cb00::/32;
+    set_real_ip_from 2606:4700::/32;
+    set_real_ip_from 2803:f800::/32;
+    set_real_ip_from 2405:b500::/32;
+    set_real_ip_from 2405:8100::/32;
+    set_real_ip_from 2a06:98c0::/29;
+    set_real_ip_from 2c0f:f248::/32;
+
+	real_ip_header CF-Connecting-IP;
+
+	access_log  off;
+	log_format  main  '\$remote_addr - \$remote_user [\$time_local] "\$request" '
+	              '\$status \$body_bytes_sent "\$http_referer" '
+	              '"\$http_user_agent" "\$http_x_forwarded_for"';
+
+	add_header X-Frame-Options SAMEORIGIN;
+	add_header X-XSS-Protection "1; mode=block";
+	add_header X-Content-Type-Options nosniff;
+	
+	sendfile on;
+	tcp_nopush on;
+	tcp_nodelay off;
+	types_hash_max_size 2048;
+	server_tokens off;
+	server_names_hash_bucket_size 128;
+	client_max_body_size 0;
+	client_body_buffer_size 256k;
+	client_body_in_file_only off;
+	client_body_timeout 60s;
+	client_header_buffer_size 256k;
+	client_header_timeout  20s;
+	large_client_header_buffers 8 256k;
+	keepalive_timeout 10;
+	keepalive_disable msie6;
+	reset_timedout_connection on;
+	send_timeout 60s;
+	
+	gzip on;
+	gzip_static on;
+	gzip_disable "msie6";
+	gzip_vary on;
+	gzip_proxied any;
+	gzip_comp_level 6;
+	gzip_buffers 16 8k;
+	gzip_http_version 1.1;
+	gzip_types text/plain text/css application/json text/javascript application/javascript text/xml application/xml application/xml+rss;
+
+	include /etc/nginx/conf.d/*.conf;
+}
+END
+
+cat > "/usr/share/nginx/html/403.html" <<END
+<html>
+<head><title>403 Forbidden</title></head>
+<body bgcolor="white">
+<center><h1>403 Forbidden</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+END
+
+cat > "/usr/share/nginx/html/404.html" <<END
+<html>
+<head><title>404 Not Found</title></head>
+<body bgcolor="white">
+<center><h1>404 Not Found</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+END
+
+rm -rf /etc/nginx/conf.d/*
+cat > "/etc/nginx/conf.d/default.conf" <<END
+server {
+    listen   80 default_server;
+    return   444;
+}
+END
+
+cat >> "/etc/security/limits.conf" <<END
+* soft nofile 262144
+* hard nofile 262144
+nginx soft nofile 262144
+nginx hard nofile 262144
+nobody soft nofile 262144
+nobody hard nofile 262144
+root soft nofile 262144
+root hard nofile 262144
+END
+
+ulimit -n 262144
+
+systemctl restart nginx.service
+
+# MariaDB #
+
+rm -rf /etc/mysql/conf.d/*
+rm -rf /etc/mysql/mariadb.conf.d/*
+
+cp /etc/mysql/mariadb.cnf /etc/mysql/mariadb.cnf-original
+
+if [[ "$(expr $server_ram_total \<= 2099000)" = "1" ]]; then
+	wget -q $script_url/ubuntu-cf/mysql/my-mdb10-min.cnf -O /etc/mysql/mariadb.cnf
+fi
+
+if [[ "$(expr $server_ram_total \> 2100001)" = "1" && "$(expr $server_ram_total \<= 4190000)" = "1" ]]; then
+	wget -q $script_url/ubuntu-cf/mysql/my-mdb10.cnf -O /etc/mysql/mariadb.cnf
+fi
+
+if [[ "$(expr $server_ram_total \>= 4190001)" = "1" && "$(expr $server_ram_total \<= 8199999)" = "1" ]]; then
+	wget -q $script_url/ubuntu-cf/mysql/my-mdb10-4gb.cnf -O /etc/mysql/mariadb.cnf
+fi
+
+if [[ "$(expr $server_ram_total \>= 8200000)" = "1" && "$(expr $server_ram_total \<= 15999999)" = "1" ]]; then
+	wget -q $script_url/ubuntu-cf/mysql/my-mdb10-8gb.cnf -O /etc/mysql/mariadb.cnf
+fi
+
+if [[ "$(expr $server_ram_total \>= 16000000)" = "1" && "$(expr $server_ram_total \<= 31999999)" = "1" ]]; then
+	wget -q $script_url/ubuntu-cf/mysql/my-mdb10-16gb.cnf -O /etc/mysql/mariadb.cnf
+fi
+
+if [[ "$(expr $server_ram_total \>= 32000000)" = "1" ]]; then
+	wget -q $script_url/ubuntu-cf/mysql/my-mdb10-32gb.cnf -O /etc/mysql/mariadb.cnf
+fi
+
+mysqld_slow_query_log_file_path_here = "/home/logs/mysql-slow.log"
+mysqld_log_error_path_here = "/home/logs/mysql-error.log"
+mysqld_safe_log_error_path_here = "/home/logs/mysql-safe-error.log"
+sed -i "s/mysqld_slow_query_log_file_path_here/$mysqld_slow_query_log_file_path_here/g" /etc/mysql/mariadb.cnf
+sed -i "s/mysqld_log_error_path_here/$mysqld_log_error_path_here/g" /etc/mysql/mariadb.cnf
+sed -i "s/mysqld_safe_log_error_path_here/$mysqld_safe_log_error_path_here/g" /etc/mysql/mariadb.cnf
+
+rm -f /var/lib/mysql/ib_logfile0
+rm -f /var/lib/mysql/ib_logfile1
+rm -f /var/lib/mysql/ibdata1
+
+printf "=========================================================================\n"
+printf "Config for MariaDB ... \n"
+printf "=========================================================================\n"
+
+# Random password for admin account
+admin_password=`date |md5sum |cut -c '14-30'`
+
+read -p "Enter root passwrd: "  root_password
+if [ "$root_password" = "" ]; then
+	# Random password for MySQL root account
+	root_password=`date |md5sum |cut -c '14-30'`
+	echo "You not enter root password, $admin_password will be set to root password"
+fi
+sleep 1
+
+'/usr/bin/mysqladmin' -u root password "$root_password"
+mysql -u root -p"$root_password" -e "DELETE FROM mysql.user WHERE User=''"
+mysql -u root -p"$root_password" -e "FLUSH PRIVILEGES"
+
+cat > "/root/.my.cnf" <<END
+[client]
+user=root
+password=$root_password
+END
+chmod 600 /root/.my.cnf
+
+systemctl stop mariadb.service
+
+wget -q $script_url/config/mysql/mariadb10_3tables.sql
+
+rm -rf /var/lib/mysql/mysql/gtid_slave_pos.ibd
+rm -rf /var/lib/mysql/mysql/innodb_table_stats.ibd
+rm -rf /var/lib/mysql/mysql/innodb_index_stats.ibd
+
+systemctl start mariadb.service
+
+mysql -e "ALTER TABLE mysql.gtid_slave_pos DISCARD TABLESPACE;" 2> /dev/null
+mysql -e "ALTER TABLE mysql.innodb_table_stats DISCARD TABLESPACE;" 2> /dev/null
+mysql -e "ALTER TABLE mysql.innodb_index_stats DISCARD TABLESPACE;" 2> /dev/null
+
+mysql mysql < mariadb10_3tables.sql
+
+systemctl restart mariadb.service
+mysql_upgrade --force mysql
+rm -f mariadb10_3tables.sql
+
+clear
+printf "=========================================================================\n"
+printf "Config for MariaDB Finish... \n"
+printf "=========================================================================\n"
+
+# Log Rotation
+cat > "/etc/logrotate.d/nginx" <<END
+/home/logs/access.log /home/logs/error.log /home/logs/nginx_error.log {
+	create 640 nginx nginx
+        daily
+	dateext
+        missingok
+        rotate 5
+        maxage 7
+        compress
+	size=100M
+        notifempty
+        sharedscripts
+        postrotate
+                [ -f /run/nginx.pid ] && kill -USR1 \`cat /run/nginx.pid\`
+        endscript
+	su nginx nginx
+}
+END
+cat > "/etc/logrotate.d/mysql" <<END
+/home/logs/mysql*.log {
+        create 640 mysql mysql
+        notifempty
+        daily
+        rotate 3
+        maxage 7
+        missingok
+        compress
+        postrotate
+        # just if mysqld is really running
+        if test -x /usr/bin/mysqladmin && \
+           /usr/bin/mysqladmin ping &>/dev/null
+        then
+           /usr/bin/mysqladmin flush-logs
+        fi
+        endscript
+	su mysql mysql
+}
+END
+
+# Change port SSH
+sed -i 's/#Port 22/Port 2222/g' /etc/ssh/sshd_config
+sed -i 's/ports=22/ports=2222/g' /etc/ufw/applications.d/openssh-server
+
+cat > "/etc/fail2ban/jail.local" <<END
+
+[sshd]
+enabled  = true
+filter   = sshd
+action   = ufw[application="OpenSSH", blocktype=reject]
+logpath  = /var/log/secure
+maxretry = 3
+bantime = 3600
+
+END
+
+systemctl start fail2ban.service
+
+# Open port
+ufw allow 80
+ufw allow 25
+ufw allow 443
+ufw allow 465
+ufw allow 587
+ufw allow $admin_port
+ufw allow 2222
+
+rm -f /root/i-ubuntu-001
+echo -n "cd /home" >> /root/.bashrc
+
+mkdir -p /etc/phitv/
+
+cat > "/etc/phitv/scripts.conf" <<END
+phitv_version="$phitv_version"
+server_name="default"
+server_ip="$server_ip"
+admin_port="$admin_port"
+script_url="$script_url"
+mariadb_root_password="$root_password"
+END
+chmod 600 /etc/phitv/scripts.conf
+
+clear
+printf "=========================================================================\n"
+printf "Finish config, add menu scripts... \n"
+printf "=========================================================================\n"
+
+wget -q $script_url/menu/ubuntu-001 -O /bin/phitv && chmod +x /bin/phitv
+mkdir /etc/phitv/menu/
+cd /etc/phitv/menu/
+wget -q $script_url/component/ubuntu/ubuntu-001.zip
+unzip -q ubuntu-001.zip && rm -f ubuntu-001.zip
+chmod +x /etc/phitv/menu/*
+
+printf "=========================================================================\n"
+printf "***Note: Port SSH Change from 22 to 2222 \n"
+printf "=========================================================================\n"
+printf "Use \"phitv\" to connect SSH.\n"
+printf "=========================================================================\n"
+printf "Server will be reboot adter 3s.... \n\n"
+sleep 3
+reboot
+exit

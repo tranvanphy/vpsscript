@@ -49,8 +49,8 @@ default-storage-engine = InnoDB
 log_warnings=1
 slow_query_log=0
 long_query_time=1
-slow_query_log_file=/home/default/logs/mysql-slow.log
-log-error=/home/default/logs/mysql.log
+slow_query_log_file=mysqld_slow_query_log_file_path_here
+log-error=mysqld_log_error_path_here
 innodb_large_prefix=1
 innodb_purge_threads=1
 innodb_file_format = Barracuda
@@ -94,7 +94,7 @@ log_slow_filter =admin,filesort,filesort_on_disk,full_join,full_scan,query_cache
 
 [mysqld_safe] 
 socket=/var/run/mysqld/mysqld.sock
-log-error=/home/default/logs/mysql.log
+log-error=mysqld_safe_log_error_path_here
 open-files-limit = 8192
 
 [mysqldump]

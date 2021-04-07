@@ -10,9 +10,9 @@ Centos 7
 ```curl
 curl -sO https://script.tranvanphi.info/install && bash install
 ```
-Ubuntu
+Ubuntu (nginx - mariadb - fail2ban)
 ```curl
-curl -sO https://script.tranvanphi.info/install-ubuntu && bash install-ubuntu
+curl -sO https://script.tranvanphi.info/i-ubuntu-001 && bash i-ubuntu-001
 ```
 
 ### Script using

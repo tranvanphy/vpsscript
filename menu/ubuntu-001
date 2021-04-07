@@ -1,0 +1,32 @@
+#!/bin/bash
+
+. /etc/phitv/scripts.conf
+
+clear
+prompt="Select one:"
+options=("List Domain" "Add Domain" "Delete Domain" "Change Pass VPS" "Chmod Webserver" "Update Nginx, MariaDB")
+
+printf "=========================================================================\n"
+printf "                          Script v$phitv_version \n"
+printf "=========================================================================\n"
+printf "                             Menu\n"
+printf "=========================================================================\n"
+PS3="
+$prompt"
+select opt in "${options[@]}" "Exit"; do
+
+    case "$REPLY" in
+	    1) /etc/phitv/menu/list-domain;;
+	    2) /etc/phitv/menu/add-domain;;
+	    3) /etc/phitv/menu/delete-domain;;
+	    4) /etc/phitv/menu/change-pass-vps;;
+	    5) /etc/phitv/menu/chmod-webserver;;
+		6) /etc/phitv/menu/update-nginx-mariadb;;
+	    # End Menu
+
+	    $(( ${#options[@]}+1 )) ) printf "\nGoodbye!\n\n"; break;;
+	    *) echo "Wrong select";continue;;
+
+    esac
+
+done

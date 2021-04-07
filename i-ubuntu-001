@@ -271,9 +271,9 @@ if [[ "$(expr $server_ram_total \>= 32000000)" = "1" ]]; then
 	wget -q $script_url/ubuntu-cf/mysql/my-mdb10-32gb.cnf -O /etc/mysql/mariadb.cnf
 fi
 
-mysqld_slow_query_log_file_path_here = "/home/logs/mysql-slow.log"
-mysqld_log_error_path_here = "/home/logs/mysql-error.log"
-mysqld_safe_log_error_path_here = "/home/logs/mysql-safe-error.log"
+mysqld_slow_query_log_file_path_here="/home/logs/mysql-slow.log"
+mysqld_log_error_path_here="/home/logs/mysql-error.log"
+mysqld_safe_log_error_path_here="/home/logs/mysql-safe-error.log"
 sed -i "s/mysqld_slow_query_log_file_path_here/$mysqld_slow_query_log_file_path_here/g" /etc/mysql/mariadb.cnf
 sed -i "s/mysqld_log_error_path_here/$mysqld_log_error_path_here/g" /etc/mysql/mariadb.cnf
 sed -i "s/mysqld_safe_log_error_path_here/$mysqld_safe_log_error_path_here/g" /etc/mysql/mariadb.cnf
@@ -328,7 +328,6 @@ systemctl restart mariadb.service
 mysql_upgrade --force mysql
 rm -f mariadb10_3tables.sql
 
-clear
 printf "=========================================================================\n"
 printf "Config for MariaDB Finish... \n"
 printf "=========================================================================\n"
